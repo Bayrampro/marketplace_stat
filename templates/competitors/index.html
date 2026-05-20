@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Конкуренты — МаркетплейсСтат{% endblock %}
+
+{% block content %}
+    <main class="competitors-workspace">
+        <section class="form-panel" aria-labelledby="competitor-form-title">
+            <div class="section-heading">
+                <p class="eyebrow">Фича 3</p>
+                <h2 id="competitor-form-title">Подбор конкурентов</h2>
+            </div>
+            <div class="query-hints" aria-label="Тестовые запросы">
+                <p>Тестовая база заполнена заранее. Чтобы увидеть результаты, попробуйте:</p>
+                <div class="query-chip-list">
+                    <a href="{% url 'competitors:index' %}?query=черная+шапка">черная шапка</a>
+                    <a href="{% url 'competitors:index' %}?query=зимняя+шапка">зимняя шапка</a>
+                    <a href="{% url 'competitors:index' %}?query=женская+шапка">женская шапка</a>
+                    <a href="{% url 'competitors:index' %}?query=спортивные+кроссовки">спортивные кроссовки</a>
+                    <a href="{% url 'competitors:index' %}?query=детский+рюкзак">детский рюкзак</a>
+                    <a href="{% url 'competitors:index' %}?query=термокружка">термокружка</a>
+                    <a href="{% url 'competitors:index' %}?query=постельное+белье">постельное белье</a>
+                    <a href="{% url 'competitors:index' %}?query=мужская+футболка">мужская футболка</a>
+                </div>
+            </div>
+
+            <form method="get" novalidate>
+                {% if form.non_field_errors %}
+                    <div class="form-alert">
+                        {% for error in form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="search-row">
+                    <div class="field-group search-field">
+                        <label for="{{ form.query.id_for_label }}">{{ form.query.label }}</label>
+                        {{ form.query }}
+                        {% if form.query.errors %}
+                            <div class="field-error">
+                                {% for error in form.query.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="form-actions search-actions">
+                        <button type="submit" class="primary-button">Найти конкурентов</button>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <section class="result-panel competitors-panel" aria-labelledby="competitor-result-title">
+            <div class="section-heading competitors-heading">
+                <div>
+                    <p class="eyebrow">Результаты</p>
+                    <h2 id="competitor-result-title">Тестовая выдача</h2>
+                </div>
+                {% if products %}
+                    <span class="status-pill">{{ products|length }} товаров</span>
+                {% endif %}
+            </div>
+
+            {% if products %}
+                <div class="competitor-grid">
+                    {% for product in products %}
+                        <article class="competitor-card">
+                            <div class="competitor-position">№ {{ product.position }}</div>
+                            <img class="competitor-image" src="{% static product.image %}" alt="{{ product.title }}">
+                            <div class="competitor-content">
+                                <h3>{{ product.title }}</h3>
+                                <div class="competitor-stats">
+                                    <span>{{ product.price }} ₽</span>
+                                    <span>Рейтинг {{ product.rating }}</span>
+                                    <span>{{ product.reviews_count }} отзывов</span>
+                                </div>
+                                <a class="product-link" href="{{ product.product_url }}" target="_blank" rel="noreferrer">
+                                    Открыть карточку
+                                </a>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% elif no_results %}
+                <div class="empty-result competitors-empty">
+                    <p>Данные не найдены</p>
+                </div>
+            {% else %}
+                <div class="empty-result competitors-empty">
+                    <p>Введите ключевую фразу, чтобы увидеть до пяти товаров-конкурентов из тестовой базы.</p>
+                </div>
+            {% endif %}
+        </section>
+    </main>
+{% endblock %}

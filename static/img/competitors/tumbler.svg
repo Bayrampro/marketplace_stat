@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="Tumbler">
+  <rect width="240" height="240" fill="#fffdf8"/>
+  <path d="M78 56h84l-13 142c-1 8-8 14-16 14h-26c-8 0-15-6-16-14z" fill="#1f2a24"/>
+  <path d="M72 43h96v24H72z" fill="#b02e2f"/>
+  <path d="M92 96h56" stroke="#f3ded8" stroke-width="12" stroke-linecap="round"/>
+  <path d="M89 127h62" stroke="#1b6f67" stroke-width="9" stroke-linecap="round"/>
+</svg>

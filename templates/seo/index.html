@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}SEO-описание — МаркетплейсСтат{% endblock %}
+
+{% block content %}
+    <main class="workspace">
+        <section class="form-panel" aria-labelledby="seo-form-title">
+            <div class="section-heading">
+                <p class="eyebrow">Фича 1</p>
+                <h2 id="seo-form-title">Генерация SEO-описания</h2>
+            </div>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="form-alert">
+                        {% for error in form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="field-grid">
+                    {% for field in form %}
+                        <div class="field-group {% if field.name == 'keywords' or field.name == 'advantages' %}field-wide{% endif %}">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="field-error">
+                                    {% for error in field.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="primary-button">Сгенерировать описание</button>
+                </div>
+            </form>
+        </section>
+
+        <aside class="result-panel" aria-labelledby="seo-result-title">
+            <div class="section-heading">
+                <p class="eyebrow">Результат</p>
+                <h2 id="seo-result-title">Готовый текст</h2>
+            </div>
+
+            {% if generated_request %}
+                <article class="generated-result">
+                    <p id="generatedText">{{ generated_request.generated_text }}</p>
+                </article>
+                <div class="result-meta">
+                    <span>{{ generated_request.product_name }}</span>
+                    <span>{{ generated_request.category }}</span>
+                </div>
+                <button type="button" class="secondary-button" data-copy-target="generatedText">
+                    Скопировать текст
+                </button>
+                <p class="copy-status" aria-live="polite"></p>
+            {% else %}
+                <div class="empty-result">
+                    <p>Здесь появится SEO-описание после генерации.</p>
+                </div>
+            {% endif %}
+        </aside>
+    </main>
+{% endblock %}

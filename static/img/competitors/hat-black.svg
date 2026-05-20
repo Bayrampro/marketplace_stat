@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="Black hat">
+  <rect width="240" height="240" fill="#fffdf8"/>
+  <circle cx="120" cy="74" r="28" fill="#1f2a24"/>
+  <path d="M48 132c5-48 37-78 72-78s67 30 72 78z" fill="#252b27"/>
+  <path d="M42 132h156c9 0 16 7 16 16v12H26v-12c0-9 7-16 16-16z" fill="#121614"/>
+  <path d="M61 111c35 17 78 17 118 0" fill="none" stroke="#b02e2f" stroke-width="10" stroke-linecap="round"/>
+</svg>

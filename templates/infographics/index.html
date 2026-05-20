@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Инфографика — МаркетплейсСтат{% endblock %}
+
+{% block content %}
+    <main class="workspace">
+        <section class="form-panel" aria-labelledby="infographic-form-title">
+            <div class="section-heading">
+                <p class="eyebrow">Фича 2</p>
+                <h2 id="infographic-form-title">Генерация инфографики</h2>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="form-alert">
+                        {% for error in form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="field-grid">
+                    {% for field in form %}
+                        <div class="field-group {% if field.name == 'image' or field.name == 'title' %}field-wide{% endif %}">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="field-error">
+                                    {% for error in field.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="primary-button">Создать инфографику</button>
+                </div>
+            </form>
+        </section>
+
+        <aside class="result-panel" aria-labelledby="infographic-result-title">
+            <div class="section-heading">
+                <p class="eyebrow">Предпросмотр</p>
+                <h2 id="infographic-result-title">Готовое изображение</h2>
+            </div>
+
+            {% if generated_request and generated_request.generated_image %}
+                <div class="image-preview">
+                    <img src="{{ generated_request.generated_image.url }}" alt="Сгенерированная инфографика товара">
+                </div>
+                <div class="result-meta">
+                    <span>{{ generated_request.title }}</span>
+                    <span>{{ generated_request.layout_type }}</span>
+                </div>
+                <a class="secondary-button download-link" href="{% url 'infographics:download' generated_request.pk %}">
+                    Скачать изображение
+                </a>
+            {% else %}
+                <div class="empty-result image-empty">
+                    <p>Здесь появится предпросмотр после генерации.</p>
+                </div>
+            {% endif %}
+        </aside>
+    </main>
+{% endblock %}

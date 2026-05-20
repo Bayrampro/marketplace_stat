@@ -1,0 +1,37 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}МаркетплейсСтат{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <header class="market-header" aria-label="Шапка приложения">
+        <div class="market-header-inner">
+            <a class="brand-lockup" href="{% url 'seo:index' %}" aria-label="МаркетплейсСтат">
+                <img class="brand-logo" src="{% static 'img/marketplace-stat-logo.svg' %}" alt="">
+                <span class="brand-text">МаркетплейсСтат</span>
+            </a>
+            <div class="market-search-shell">
+                <span class="market-search-dot"></span>
+                <span class="market-search-text">Инструменты для карточек Wildberries</span>
+            </div>
+            <span class="status-pill header-pill">MVP</span>
+        </div>
+    </header>
+
+    <div class="app-shell">
+        <nav class="tabs" aria-label="Основные функции">
+            <a class="tab {% if active_tab == 'seo' %}tab-active{% endif %}" href="{% url 'seo:index' %}">SEO-описание</a>
+            <a class="tab {% if active_tab == 'infographics' %}tab-active{% endif %}" href="{% url 'infographics:index' %}">Инфографика</a>
+            <a class="tab {% if active_tab == 'competitors' %}tab-active{% endif %}" href="{% url 'competitors:index' %}">Конкуренты</a>
+        </nav>
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="{% static 'js/app.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="Women hat">
+  <rect width="240" height="240" fill="#fffdf8"/>
+  <path d="M49 134c4-47 35-77 71-77s67 30 71 77z" fill="#f3ded8"/>
+  <path d="M40 130h160v40c0 7-6 13-13 13H53c-7 0-13-6-13-13z" fill="#b02e2f"/>
+  <path d="M68 93c28 14 75 14 104 0" fill="none" stroke="#1b6f67" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="120" cy="52" r="19" fill="#1f2a24"/>
+</svg>

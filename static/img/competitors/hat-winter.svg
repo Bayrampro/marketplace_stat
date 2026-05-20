@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="Winter hat">
+  <rect width="240" height="240" fill="#fffdf8"/>
+  <circle cx="120" cy="62" r="25" fill="#b02e2f"/>
+  <path d="M45 136c6-54 39-85 75-85s69 31 75 85z" fill="#1b6f67"/>
+  <path d="M34 132h172v35c0 8-7 15-15 15H49c-8 0-15-7-15-15z" fill="#f3ded8"/>
+  <path d="M55 152h130" stroke="#1f2a24" stroke-width="8" stroke-linecap="round"/>
+</svg>

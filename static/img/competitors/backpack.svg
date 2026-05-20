@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="Backpack">
+  <rect width="240" height="240" fill="#fffdf8"/>
+  <path d="M73 79c0-25 20-45 47-45s47 20 47 45" fill="none" stroke="#1f2a24" stroke-width="11" stroke-linecap="round"/>
+  <rect x="55" y="70" width="130" height="135" rx="24" fill="#1b6f67"/>
+  <rect x="78" y="128" width="84" height="58" rx="14" fill="#f3ded8"/>
+  <path d="M79 100h82M94 156h52" stroke="#b02e2f" stroke-width="8" stroke-linecap="round"/>
+</svg>

@@ -26,7 +26,7 @@ def make_uploaded_image(name="product.png", image_format="PNG", size=(640, 840))
 class TemporaryMediaMixin:
     def setUp(self):
         self.media_dir = tempfile.mkdtemp()
-        self.override = override_settings(MEDIA_ROOT=self.media_dir)
+        self.override = override_settings(MEDIA_ROOT=self.media_dir, OPENAI_API_KEY="")
         self.override.enable()
         super().setUp()
 
@@ -40,9 +40,7 @@ class InfographicFormTests(TemporaryMediaMixin, TestCase):
     def valid_data(self):
         return {
             "title": "Теплая зимняя шапка",
-            "advantage_1": "Мягкий материал",
-            "advantage_2": "Защита от холода",
-            "advantage_3": "Универсальный размер",
+            "keywords": "мягкий материал, защита от холода, универсальный размер",
         }
 
     def test_form_accepts_supported_image_formats(self):
@@ -82,14 +80,14 @@ class InfographicFormTests(TemporaryMediaMixin, TestCase):
 
 
 class InfographicServiceTests(TemporaryMediaMixin, TestCase):
-    def test_generate_infographic_creates_square_png(self):
+    def test_generate_infographic_creates_three_by_four_png(self):
         source_path = Path(self.media_dir) / "source.png"
         Image.new("RGB", (640, 840), color=(220, 218, 205)).save(source_path)
 
         generated_path, layout_type = generate_infographic(
             source_path,
             "Теплая зимняя шапка",
-            ["Мягкий материал", "Защита от холода", "Универсальный размер"],
+            "мягкий материал, защита от холода, универсальный размер",
         )
 
         output_path = Path(self.media_dir) / generated_path
@@ -97,7 +95,7 @@ class InfographicServiceTests(TemporaryMediaMixin, TestCase):
         self.assertIn("/", layout_type)
         with Image.open(output_path) as image:
             self.assertEqual(image.format, "PNG")
-            self.assertEqual(image.size, (1080, 1080))
+            self.assertEqual(image.size, (900, 1200))
 
 
 class InfographicViewTests(TemporaryMediaMixin, TestCase):
@@ -114,9 +112,7 @@ class InfographicViewTests(TemporaryMediaMixin, TestCase):
             data={
                 "image": make_uploaded_image(),
                 "title": "Теплая зимняя шапка",
-                "advantage_1": "Мягкий материал",
-                "advantage_2": "Защита от холода",
-                "advantage_3": "Универсальный размер",
+                "keywords": "мягкий материал, защита от холода, универсальный размер",
             },
         )
 
@@ -131,13 +127,13 @@ class InfographicViewTests(TemporaryMediaMixin, TestCase):
         infographic = InfographicRequest.objects.create(
             original_image=make_uploaded_image(),
             title="Теплая зимняя шапка",
-            advantages="Мягкий материал\nЗащита от холода\nУниверсальный размер",
+            keywords="мягкий материал, защита от холода, универсальный размер",
             layout_type="test",
         )
         generated_path, layout_type = generate_infographic(
             infographic.original_image.path,
             infographic.title,
-            infographic.advantages.splitlines(),
+            infographic.keywords,
         )
         infographic.generated_image.name = generated_path
         infographic.layout_type = layout_type

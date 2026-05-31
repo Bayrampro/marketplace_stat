@@ -31,23 +31,15 @@ class InfographicForm(forms.Form):
             }
         ),
     )
-    advantage_1 = forms.CharField(
-        label="Преимущество 1",
-        max_length=80,
-        error_messages={"required": "Введите первое преимущество."},
-        widget=forms.TextInput(attrs={"placeholder": "Мягкий материал"}),
-    )
-    advantage_2 = forms.CharField(
-        label="Преимущество 2",
-        max_length=80,
-        error_messages={"required": "Введите второе преимущество."},
-        widget=forms.TextInput(attrs={"placeholder": "Защита от холода"}),
-    )
-    advantage_3 = forms.CharField(
-        label="Преимущество 3",
-        max_length=80,
-        error_messages={"required": "Введите третье преимущество."},
-        widget=forms.TextInput(attrs={"placeholder": "Универсальный размер"}),
+    keywords = forms.CharField(
+        label="Ключевые слова",
+        error_messages={"required": "Введите ключевые слова для инфографики."},
+        widget=forms.Textarea(
+            attrs={
+                "rows": 4,
+                "placeholder": "теплая шапка, мягкая пряжа, универсальный размер",
+            }
+        ),
     )
 
     def clean_image(self):
@@ -77,21 +69,8 @@ class InfographicForm(forms.Form):
     def clean_title(self):
         return self.cleaned_data["title"].strip()
 
-    def clean_advantage_1(self):
-        return self.cleaned_data["advantage_1"].strip()
-
-    def clean_advantage_2(self):
-        return self.cleaned_data["advantage_2"].strip()
-
-    def clean_advantage_3(self):
-        return self.cleaned_data["advantage_3"].strip()
-
-    @property
-    def advantages(self):
-        if not self.is_valid():
-            return []
-        return [
-            self.cleaned_data["advantage_1"],
-            self.cleaned_data["advantage_2"],
-            self.cleaned_data["advantage_3"],
-        ]
+    def clean_keywords(self):
+        keywords = self.cleaned_data["keywords"].strip()
+        if not keywords:
+            raise forms.ValidationError("Введите ключевые слова для инфографики.")
+        return keywords

@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from .forms import SEORequestForm
@@ -6,6 +6,7 @@ from .models import SEORequest
 from .services import generate_seo_description, normalize_keywords
 
 
+@override_settings(OPENAI_API_KEY="")
 class SEOServiceTests(TestCase):
     def test_normalize_keywords_removes_exact_and_morphological_duplicates(self):
         keywords = "черная шапка, черная шапка, черные шапки, зимняя шапка"
@@ -43,6 +44,7 @@ class SEOFormTests(TestCase):
         self.assertIn("keywords", form.errors)
 
 
+@override_settings(OPENAI_API_KEY="")
 class SEOIndexViewTests(TestCase):
     def test_get_index_renders_form(self):
         response = self.client.get(reverse("seo:index"))

@@ -10,7 +10,7 @@
                 <h2 id="seo-form-title">Генерация SEO-описания</h2>
             </div>
 
-            <form method="post" novalidate>
+            <form method="post" novalidate data-loading-form data-loading-title="Генерируем SEO-описание" data-loading-text="GPT анализирует название, категорию, преимущества и ключевые слова. Обычно это занимает несколько секунд.">
                 {% csrf_token %}
 
                 {% if form.non_field_errors %}
@@ -38,7 +38,9 @@
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="primary-button">Сгенерировать описание</button>
+                    <button type="submit" class="primary-button" data-loading-button data-loading-label="Генерируется...">
+                        Сгенерировать описание
+                    </button>
                 </div>
             </form>
         </section>
@@ -47,6 +49,15 @@
             <div class="section-heading">
                 <p class="eyebrow">Результат</p>
                 <h2 id="seo-result-title">Готовый текст</h2>
+            </div>
+
+            <div class="loading-result" data-loading-result hidden>
+                <div class="loading-spinner" aria-hidden="true"></div>
+                <div>
+                    <p class="loading-title" data-loading-result-title>Генерируем SEO-описание</p>
+                    <p class="loading-text" data-loading-result-text>GPT готовит текст карточки.</p>
+                </div>
+                <div class="loading-bar" aria-hidden="true"><span></span></div>
             </div>
 
             {% if generated_request %}

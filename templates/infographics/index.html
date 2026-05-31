@@ -10,7 +10,7 @@
                 <h2 id="infographic-form-title">Генерация инфографики</h2>
             </div>
 
-            <form method="post" enctype="multipart/form-data" novalidate>
+            <form method="post" enctype="multipart/form-data" novalidate data-loading-form data-loading-title="Создаём инфографику" data-loading-text="GPT Image накладывает заголовок и ключевые слова на исходную фотографию. Это может занять до минуты.">
                 {% csrf_token %}
 
                 {% if form.non_field_errors %}
@@ -23,7 +23,7 @@
 
                 <div class="field-grid">
                     {% for field in form %}
-                        <div class="field-group {% if field.name == 'image' or field.name == 'title' %}field-wide{% endif %}">
+                        <div class="field-group {% if field.name == 'image' or field.name == 'title' or field.name == 'keywords' %}field-wide{% endif %}">
                             <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                             {{ field }}
                             {% if field.errors %}
@@ -38,7 +38,9 @@
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="primary-button">Создать инфографику</button>
+                    <button type="submit" class="primary-button" data-loading-button data-loading-label="Создаётся...">
+                        Создать инфографику
+                    </button>
                 </div>
             </form>
         </section>
@@ -47,6 +49,15 @@
             <div class="section-heading">
                 <p class="eyebrow">Предпросмотр</p>
                 <h2 id="infographic-result-title">Готовое изображение</h2>
+            </div>
+
+            <div class="loading-result" data-loading-result hidden>
+                <div class="loading-spinner" aria-hidden="true"></div>
+                <div>
+                    <p class="loading-title" data-loading-result-title>Создаём инфографику</p>
+                    <p class="loading-text" data-loading-result-text>GPT Image готовит наложение поверх исходного фото.</p>
+                </div>
+                <div class="loading-bar" aria-hidden="true"><span></span></div>
             </div>
 
             {% if generated_request and generated_request.generated_image %}

@@ -1,7 +1,24 @@
+import os
 from pathlib import Path
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+def _load_local_env():
+    env_path = BASE_DIR / ".env"
+    if not env_path.exists():
+        return
+
+    for line in env_path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        os.environ.setdefault(key.strip(), value.strip().strip("'\""))
+
+
+_load_local_env()
 
 SECRET_KEY = "django-insecure-marketplace-stat-local-mvp"
 
@@ -72,3 +89,11 @@ MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+OPENAI_SEO_MODEL = os.environ.get("OPENAI_SEO_MODEL", "gpt-5.4-mini")
+OPENAI_IMAGE_MODEL = os.environ.get("OPENAI_IMAGE_MODEL", "gpt-image-1")
+OPENAI_IMAGE_OUTPUT_FORMAT = os.environ.get("OPENAI_IMAGE_OUTPUT_FORMAT", "png")
+OPENAI_IMAGE_SIZE = os.environ.get("OPENAI_IMAGE_SIZE", "1024x1536")
+OPENAI_IMAGE_QUALITY = os.environ.get("OPENAI_IMAGE_QUALITY", "medium")
+OPENAI_TIMEOUT = float(os.environ.get("OPENAI_TIMEOUT", "90"))

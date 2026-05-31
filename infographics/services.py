@@ -1,13 +1,16 @@
+import base64
 import random
+import re
 import textwrap
 import uuid
+from io import BytesIO
 from pathlib import Path
 
 from django.conf import settings
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 
 
-OUTPUT_SIZE = (1080, 1080)
+OUTPUT_SIZE = (900, 1200)
 
 PALETTES = [
     {
@@ -35,23 +38,22 @@ PALETTES = [
 
 LAYOUTS = [
     {
-        "name": "title_top_benefits_right",
-        "title": (70, 62, 1010, 202),
-        "benefits": [(620, 318, 1010, 424), (620, 460, 1010, 566), (620, 602, 1010, 708)],
+        "name": "marketplace_left_stack",
+        "title": (54, 92, 432, 250),
+        "benefits": [(54, 330, 344, 425), (54, 458, 344, 553), (54, 586, 344, 681)],
     },
     {
-        "name": "title_bottom_benefits_left",
-        "title": (70, 850, 1010, 1008),
-        "benefits": [(70, 278, 474, 384), (70, 420, 474, 526), (70, 562, 474, 668)],
+        "name": "marketplace_top_band",
+        "title": (54, 58, 846, 182),
+        "benefits": [(54, 955, 312, 1052), (336, 955, 594, 1052), (618, 955, 846, 1052)],
     },
     {
-        "name": "title_left_benefits_corners",
-        "title": (58, 250, 356, 738),
-        "benefits": [(594, 70, 1010, 176), (594, 804, 1010, 910), (70, 868, 486, 974)],
+        "name": "marketplace_right_specs",
+        "title": (440, 72, 846, 226),
+        "benefits": [(536, 330, 846, 425), (536, 458, 846, 553), (536, 586, 846, 681)],
     },
 ]
 
-BADGE_SHAPES = ["rounded", "rectangle", "circle"]
 TEXT_SIZES = ["medium", "large"]
 
 
@@ -111,20 +113,126 @@ def _draw_centered_text(draw, box, text, font, fill, spacing=8):
 
 
 def _draw_decor(draw, palette):
-    draw.rectangle((28, 28, 1052, 1052), outline=palette["accent"], width=8)
-    draw.line((58, 1024, 316, 1024), fill=palette["marker"], width=10)
-    draw.line((764, 56, 1022, 56), fill=palette["marker"], width=10)
-    draw.ellipse((884, 896, 1018, 1030), outline=palette["accent"], width=6)
+    width, height = OUTPUT_SIZE
+    draw.rectangle((24, 24, width - 24, height - 24), outline=(255, 255, 255, 210), width=10)
+    draw.line((54, height - 66, 302, height - 66), fill=palette["marker"], width=9)
+    draw.line((width - 302, 54, width - 54, 54), fill=palette["accent"], width=9)
 
 
-def generate_infographic(source_path, title, advantages):
+def _split_items(value):
+    if isinstance(value, (list, tuple)):
+        raw_items = value
+    else:
+        raw_items = re.split(r"[,;\n]+", str(value))
+
+    items = []
+    seen = set()
+    for raw_item in raw_items:
+        item = re.sub(r"\s+", " ", str(raw_item)).strip()
+        if not item:
+            continue
+        key = item.casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        items.append(item)
+    return items
+
+
+def _openai_client():
+    if not settings.OPENAI_API_KEY:
+        return None
+
+    try:
+        from openai import OpenAI
+    except ImportError:
+        return None
+
+    return OpenAI(api_key=settings.OPENAI_API_KEY, timeout=settings.OPENAI_TIMEOUT)
+
+
+def _build_openai_prompt(title, keywords):
+    keyword_text = ", ".join(keywords[:6])
+    return (
+        "Используй загруженную фотографию как основу. Не создавай новый товар, "
+        "не меняй модель, одежду, цвет, форму, фон и композицию исходной фотографии. "
+        "Нужно только наложить поверх существующего фото коммерческую инфографику "
+        "для карточки Wildberries: крупный заголовок, аккуратные плашки, короткие "
+        "подписи и маркеры. Товар должен остаться узнаваемым как на исходнике.\n\n"
+        f"Заголовок: {title.strip()}\n"
+        f"Ключевые слова для плашек: {keyword_text}\n\n"
+        "Стиль: чистый маркетплейс, как карточки одежды: контрастный заголовок, "
+        "2-4 небольшие информационные плашки, читаемый русский текст, без подписи "
+        "«Преимущество 1», «Преимущество 2», «Преимущество 3». Итог должен выглядеть "
+        "как исходная фотография с наложенной инфографикой, а не как новая сцена."
+    )
+
+
+def _image_b64(response):
+    if not getattr(response, "data", None):
+        return None
+
+    image = response.data[0]
+    if isinstance(image, dict):
+        return image.get("b64_json")
+    return getattr(image, "b64_json", None)
+
+
+def _save_image_bytes(image_bytes, output_format):
+    generated_dir = Path(settings.MEDIA_ROOT) / "generated"
+    generated_dir.mkdir(parents=True, exist_ok=True)
+
+    clean_format = output_format.lower()
+    extension = "jpg" if clean_format == "jpeg" else clean_format
+    filename = f"generated_{uuid.uuid4().hex}.{extension}"
+    output_path = generated_dir / filename
+
+    with Image.open(BytesIO(image_bytes)) as image:
+        image = ImageOps.exif_transpose(image)
+        image = ImageOps.fit(image.convert("RGB"), OUTPUT_SIZE, method=Image.Resampling.LANCZOS)
+        if clean_format in {"jpg", "jpeg"}:
+            image.save(output_path, format="JPEG", quality=94, optimize=True)
+        elif clean_format == "webp":
+            image.save(output_path, format="WEBP", quality=94, optimize=True)
+        else:
+            image.save(output_path, format="PNG", optimize=True)
+
+    return f"generated/{filename}"
+
+
+def _generate_openai_infographic(source_path, title, keywords):
+    client = _openai_client()
+    if client is None:
+        return None
+
+    with open(source_path, "rb") as image_file:
+        response = client.images.edit(
+            model=settings.OPENAI_IMAGE_MODEL,
+            image=image_file,
+            prompt=_build_openai_prompt(title, keywords),
+            size=settings.OPENAI_IMAGE_SIZE,
+            quality=settings.OPENAI_IMAGE_QUALITY,
+            output_format=settings.OPENAI_IMAGE_OUTPUT_FORMAT,
+        )
+
+    image_b64 = _image_b64(response)
+    if not image_b64:
+        return None
+
+    return _save_image_bytes(
+        base64.b64decode(image_b64),
+        settings.OPENAI_IMAGE_OUTPUT_FORMAT,
+    )
+
+
+def _generate_local_infographic(source_path, title, keywords):
     palette = random.choice(PALETTES)
     layout = random.choice(LAYOUTS)
-    shape = random.choice(BADGE_SHAPES)
+    shape = random.choice(["rectangle", "rounded"])
     text_size = random.choice(TEXT_SIZES)
 
-    title_font = _font(56 if text_size == "large" else 48, bold=True)
-    benefit_font = _font(30 if text_size == "large" else 26, bold=True)
+    title_font = _font(68 if text_size == "large" else 58, bold=True)
+    benefit_font = _font(30 if text_size == "large" else 27, bold=True)
 
     with Image.open(source_path) as image:
         image = ImageOps.exif_transpose(image)
@@ -133,7 +241,7 @@ def generate_infographic(source_path, title, advantages):
 
     soft_layer = Image.new("RGBA", OUTPUT_SIZE, (255, 255, 255, 0))
     soft_draw = ImageDraw.Draw(soft_layer)
-    soft_draw.rectangle((0, 0, 1080, 1080), fill=(255, 253, 248, 24))
+    soft_draw.rectangle((0, 0, *OUTPUT_SIZE), fill=(255, 253, 248, 24))
     canvas = Image.alpha_composite(canvas, soft_layer)
 
     draw = ImageDraw.Draw(canvas)
@@ -141,7 +249,7 @@ def generate_infographic(source_path, title, advantages):
 
     title_box = layout["title"]
     _draw_shadowed_box(canvas, draw, title_box, palette["overlay"], 28, "rounded")
-    title_width = 15 if title_box[2] - title_box[0] < 400 else 24
+    title_width = 11 if title_box[2] - title_box[0] < 430 else 22
     _draw_centered_text(
         draw,
         title_box,
@@ -151,7 +259,8 @@ def generate_infographic(source_path, title, advantages):
         spacing=10,
     )
 
-    for index, advantage in enumerate(advantages):
+    callouts = keywords[:3] or ["Для маркетплейса"]
+    for index, keyword in enumerate(callouts):
         box = layout["benefits"][index]
         benefit_shape = "rounded" if shape == "circle" and index != 1 else shape
         _draw_shadowed_box(canvas, draw, box, palette["overlay"], 26, benefit_shape)
@@ -162,7 +271,7 @@ def generate_infographic(source_path, title, advantages):
         _draw_centered_text(
             draw,
             text_box,
-            _wrap_text(advantage, 20),
+            _wrap_text(keyword, 20),
             benefit_font,
             palette["text"],
             spacing=6,
@@ -176,3 +285,16 @@ def generate_infographic(source_path, title, advantages):
 
     layout_type = f"{layout['name']} / {palette['name']} / {shape} / {text_size}"
     return f"generated/{filename}", layout_type
+
+
+def generate_infographic(source_path, title, keywords):
+    clean_keywords = _split_items(keywords)
+    try:
+        generated_path = _generate_openai_infographic(source_path, title, clean_keywords)
+    except Exception:
+        generated_path = None
+
+    if generated_path:
+        return generated_path, f"OpenAI edit {settings.OPENAI_IMAGE_MODEL} / overlay / 3:4"
+
+    return _generate_local_infographic(source_path, title, clean_keywords)

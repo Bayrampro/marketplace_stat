@@ -12,7 +12,7 @@ class InfographicRequest(models.Model):
         blank=True,
     )
     title = models.CharField("Заголовок", max_length=120)
-    advantages = models.TextField("Преимущества")
+    keywords = models.TextField("Ключевые слова")
     layout_type = models.CharField("Вариант оформления", max_length=120)
     created_at = models.DateTimeField("Дата создания", auto_now_add=True)
 

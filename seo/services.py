@@ -1,6 +1,7 @@
 import random
 import re
 
+from django.conf import settings
 import pymorphy3
 
 
@@ -61,7 +62,7 @@ def _format_series(items):
     return ", ".join(items[:-1]) + " и " + items[-1]
 
 
-def generate_seo_description(product_name, category, keywords, advantages):
+def _generate_template_description(product_name, category, keywords, advantages):
     product_name = product_name.strip()
     category = category.strip()
     clean_keywords = normalize_keywords(keywords)
@@ -112,4 +113,68 @@ def generate_seo_description(product_name, category, keywords, advantages):
         advantage_text=advantage_text or "качество и удобство",
         primary_keyword=primary_keyword,
         secondary_keyword=secondary_keyword,
+    )
+
+
+def _openai_client():
+    if not settings.OPENAI_API_KEY:
+        return None
+
+    try:
+        from openai import OpenAI
+    except ImportError:
+        return None
+
+    return OpenAI(api_key=settings.OPENAI_API_KEY, timeout=settings.OPENAI_TIMEOUT)
+
+
+def _generate_openai_description(product_name, category, keywords, advantages):
+    client = _openai_client()
+    if client is None:
+        return None
+
+    clean_keywords = normalize_keywords(keywords)
+    clean_advantages = split_items(advantages)
+    response = client.responses.create(
+        model=settings.OPENAI_SEO_MODEL,
+        reasoning={"effort": "low"},
+        instructions=(
+            "Ты русскоязычный SEO-копирайтер для карточек товаров на "
+            "маркетплейсах. Пиши полезно, естественно и без переспама. "
+            "Верни только готовое описание без Markdown, списков и пояснений."
+        ),
+        input=(
+            "Сгенерируй продающее SEO-описание товара на русском языке.\n"
+            "Требования: 900-1300 знаков, 2-3 абзаца, органично используй "
+            "ключевые слова, упомяни преимущества, избегай медицинских и "
+            "недоказуемых обещаний.\n\n"
+            f"Название товара: {product_name.strip()}\n"
+            f"Категория товара: {category.strip()}\n"
+            f"Ключевые слова: {', '.join(clean_keywords)}\n"
+            f"Преимущества товара: {', '.join(clean_advantages)}"
+        ),
+    )
+    text = getattr(response, "output_text", "").strip()
+    return text or None
+
+
+def generate_seo_description(product_name, category, keywords, advantages):
+    try:
+        generated_text = _generate_openai_description(
+            product_name=product_name,
+            category=category,
+            keywords=keywords,
+            advantages=advantages,
+        )
+    except Exception:
+        generated_text = None
+
+    if generated_text:
+        return generated_text
+
+    return _generate_template_description(
+        product_name=product_name,
+        category=category,
+        keywords=keywords,
+        advantages=advantages,
     )

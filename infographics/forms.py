@@ -2,7 +2,8 @@ from django import forms
 from PIL import Image, UnidentifiedImageError
 
 
-MAX_UPLOAD_SIZE = 5 * 1024 * 1024
+MAX_UPLOAD_SIZE = 10 * 1024 * 1024
+MAX_UPLOAD_SIZE_MB = MAX_UPLOAD_SIZE // (1024 * 1024)
 ALLOWED_FORMATS = {"JPEG", "PNG", "WEBP"}
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 
@@ -17,6 +18,8 @@ class InfographicForm(forms.Form):
         widget=forms.ClearableFileInput(
             attrs={
                 "accept": ".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp",
+                "data-max-size": str(MAX_UPLOAD_SIZE),
+                "data-max-size-mb": str(MAX_UPLOAD_SIZE_MB),
             }
         ),
     )
@@ -47,7 +50,9 @@ class InfographicForm(forms.Form):
         image_name = image.name.lower()
 
         if image.size > MAX_UPLOAD_SIZE:
-            raise forms.ValidationError("Размер изображения не должен превышать 5 MB.")
+            raise forms.ValidationError(
+                f"Размер изображения не должен превышать {MAX_UPLOAD_SIZE_MB} MB."
+            )
 
         if not any(image_name.endswith(extension) for extension in ALLOWED_EXTENSIONS):
             raise forms.ValidationError("Допустимые форматы: JPG, PNG или WEBP.")

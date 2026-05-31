@@ -70,13 +70,13 @@ class InfographicFormTests(TemporaryMediaMixin, TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("image", form.errors)
 
-    def test_form_rejects_file_larger_than_five_mb(self):
+    def test_form_rejects_file_larger_than_ten_mb(self):
         upload = make_uploaded_image()
         upload.size = MAX_UPLOAD_SIZE + 1
         form = InfographicForm(data=self.valid_data(), files={"image": upload})
 
         self.assertFalse(form.is_valid())
-        self.assertIn("Размер изображения не должен превышать 5 MB.", form.errors["image"])
+        self.assertIn("Размер изображения не должен превышать 10 MB.", form.errors["image"])
 
 
 class InfographicServiceTests(TemporaryMediaMixin, TestCase):
